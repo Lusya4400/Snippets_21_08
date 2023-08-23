@@ -17,12 +17,15 @@ def add_snippet_page(request):
 def snippets_page(request):
     snippets = Snippet.objects.all()
     len_s = len(snippets)
-    if snippets:
-        context = {'pagename': 'Просмотр сниппетов',
-                'snippets': snippets,
-                'num' : len_s
-        }
-    else:
-        context = {'pagename': 'Просмотр сниппетов',
-        }
+    context = {'pagename': 'Просмотр сниппетов',
+            'snippets': snippets,
+            'num' : len_s
+    }
     return render(request, 'pages/view_snippets.html', context)
+
+def snippet_detail(request, snippet_id):
+    snippet = Snippet.objects.get(id=snippet_id)
+    context ={'pagename': 'Просмотр сниппета',
+            'snippet': snippet,
+    }
+    return render(request, 'pages/snippet_detail.html', context)
