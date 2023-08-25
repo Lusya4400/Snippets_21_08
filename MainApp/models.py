@@ -15,6 +15,9 @@ class Snippet(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, blank=True, null=True)
     public = models.BooleanField(default=True)
 
+    def __str__(self) -> str:
+        return f"{self.id}, {self.name}"
+    
     def __repr__(self) -> str:
         return f"{self.id}, {self.name}, {self.code}"
     
