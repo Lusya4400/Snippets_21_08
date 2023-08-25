@@ -12,8 +12,8 @@
 
     <div class="row">
         <div class="col">
-        {% if type == "view" %}    
-            <fieldset disabled>
+        {% if type == "view" %}
+             <fieldset disabled>
                 <div class="row disabled">
                     <div class="col col-6">
                         Название: <input type="text" value="{{ snippet.name }}"" class="form-control">
@@ -32,12 +32,43 @@
                             <p>
                                 {{ snippet.code }}
                             </p>
-             
+            
                         </div>
-             
+            
                     </div>
                 </div>
-             </fieldset>
+            </fieldset>
+            {% if request.user.is_authenticated %}
+                <form action="{% url 'comment_add' snippet.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit">Добавить комментарий</button>
+                    <div class="form-group row">
+                        <div class="col-sm-8">
+                            <input type="text" name="text" class="form-control form-control-lg" placeholder="Комментарий">
+                        </div>
+                    </div>      
+            {% endif %}
+             </form>
+             <table border="1">
+                <tr>
+                    <th>Автор</th>
+                    <th>Комментарий</th>
+                </tr>
+                {% for comment in comments %}
+                <tr>
+                    <td>{{comment.author.username}}</td>
+                    <td>
+                        {% if request.user == comment.author %}
+                                {{comment.text}}<i style="color:red" class="fas fa-edit"></i>  
+                        {% else %}
+                            {{comment.text}}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+             </table>
+             
+             
         {% elif type == 'edit' %} 
             <form action="" method="post">
                 {% csrf_token %}

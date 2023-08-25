@@ -1,7 +1,7 @@
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, redirect
-from MainApp.models import Snippet
-from MainApp.forms import SnippetForm, UserRegistrationForm
+from MainApp.models import Snippet, Comment
+from MainApp.forms import SnippetForm, UserRegistrationForm, CommentForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib import auth
@@ -45,10 +45,11 @@ def add_snippet_page(request):
 
 def snippets_page(request):
     snippets = Snippet.objects.filter(public=True)
+
     context = {
         'pagename': 'Просмотр сниппетов',
-        'snippets': snippets,
-    }
+        'snippets': snippets
+        }
     return render(request, 'pages/view_snippets.html', context)
 
 def snippet_detail(request, snippet_id):
@@ -56,9 +57,11 @@ def snippet_detail(request, snippet_id):
         snippet = Snippet.objects.get(id=snippet_id)
     except ObjectDoesNotExist:
         raise Http404
+    comments = Comment.objects.filter(snippet_id=snippet_id)
     context ={'pagename': 'Просмотр сниппета',
             'snippet': snippet,
-            'type': 'view'
+            'type': 'view',
+            'comments': comments
     }
     return render(request, 'pages/snippet_detail.html', context)
 
@@ -72,7 +75,7 @@ def snippet_edit(request, snippet_id):
         snippet = Snippet.objects.get(id=snippet_id)
     except ObjectDoesNotExist:
         raise Http404
-    # получаем данные сниппера
+    # получаем данные сниппета
     if request.method == "GET":      
         context = {
             'pagename': 'Редактирование сниппета',
@@ -127,6 +130,52 @@ def login(request):
 def logout(request):
     auth.logout(request)
     return redirect(request.META.get("HTTP_REFERER", '/'))
+
+@login_required
+def comment_add(request, snippet_id):
+    snippet = Snippet.objects.get(id=snippet_id)
+
+    if request.method == "POST":
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.author = request.user
+            comment.snippet = snippet
+            comment.save()
+
+        return redirect(f'/snippet/{snippet_id}')
+
+    raise Http404
+
+def comment_edit(request, comment_id):
+    try:
+        comment = Comment.objects.get(id=comment_id)
+    except ObjectDoesNotExist:
+        raise Http404
+    # получаем данные комментария
+    snippet = Comment.snippet
+    if request.method == "GET":      
+        context = {
+            'pagename': 'Редактирование Комментария',
+            'snippet': snippet,
+            'comment': comment
+        }
+        return render(request, 'pages/snippet_detail.html', context)
+    
+    # записываем новый комментарий
+    if request.method == "POST":
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.author = request.user
+            comment.snippet = snippet
+            comment.save()
+
+        return redirect(f'/snippet/{snippet.id}')
+
+def sort_up_lang(request):
+    pass
+
 
 
 # def create_snippet(request):
